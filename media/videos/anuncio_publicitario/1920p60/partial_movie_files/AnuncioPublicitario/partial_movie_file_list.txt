@@ -1,0 +1,10 @@
+# This file is used internally by FFMPEG.
+file 'file:C:/Users/mapog/Documents/jercol_ads/media/videos/anuncio_publicitario/1920p60/partial_movie_files/AnuncioPublicitario/2518071995_2208390162_223132457.mp4'
+file 'file:C:/Users/mapog/Documents/jercol_ads/media/videos/anuncio_publicitario/1920p60/partial_movie_files/AnuncioPublicitario/547123465_2457404671_636350426.mp4'
+file 'file:C:/Users/mapog/Documents/jercol_ads/media/videos/anuncio_publicitario/1920p60/partial_movie_files/AnuncioPublicitario/547123465_1432596116_1900494013.mp4'
+file 'file:C:/Users/mapog/Documents/jercol_ads/media/videos/anuncio_publicitario/1920p60/partial_movie_files/AnuncioPublicitario/547123465_2402603768_1398398029.mp4'
+file 'file:C:/Users/mapog/Documents/jercol_ads/media/videos/anuncio_publicitario/1920p60/partial_movie_files/AnuncioPublicitario/547123465_3086160686_3058814741.mp4'
+file 'file:C:/Users/mapog/Documents/jercol_ads/media/videos/anuncio_publicitario/1920p60/partial_movie_files/AnuncioPublicitario/547123465_541405704_2788414561.mp4'
+file 'file:C:/Users/mapog/Documents/jercol_ads/media/videos/anuncio_publicitario/1920p60/partial_movie_files/AnuncioPublicitario/547123465_109136978_1929602308.mp4'
+file 'file:C:/Users/mapog/Documents/jercol_ads/media/videos/anuncio_publicitario/1920p60/partial_movie_files/AnuncioPublicitario/547123465_3320080511_1755724201.mp4'
+file 'file:C:/Users/mapog/Documents/jercol_ads/media/videos/anuncio_publicitario/1920p60/partial_movie_files/AnuncioPublicitario/547123465_4277570474_3765548971.mp4'
