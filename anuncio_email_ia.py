@@ -74,6 +74,21 @@ def make_badge(texto, color_borde, color_fondo):
     txt.move_to(bg.get_center())
     return VGroup(bg, txt)
 
+def get_cursor(scale=0.7):
+    """Dibuja un cursor de ratón clásico"""
+    cursor = Polygon(
+        ORIGIN,
+        DOWN * 0.7 + RIGHT * 0.25,
+        DOWN * 0.5 + RIGHT * 0.35,
+        DOWN * 0.8 + RIGHT * 0.6,
+        DOWN * 0.7 + RIGHT * 0.7,
+        DOWN * 0.4 + RIGHT * 0.45,
+        DOWN * 0.3 + RIGHT * 0.75,
+        fill_color=WHITE, fill_opacity=1, stroke_color=BLACK, stroke_width=2
+    )
+    cursor.scale(scale)
+    return cursor
+
 
 class AnuncioEmailIA(Scene):
     def construct(self):
@@ -337,7 +352,7 @@ class AnuncioEmailIA(Scene):
         self.wait(1.2)
 
         # ══════════════════════════════════════
-        # ESCENA 6 — MINI CRM (FIX ALINEACIÓN Y COLOR)
+        # ESCENA 6 — MINI CRM
         # ══════════════════════════════════════
 
         self.play(
@@ -346,21 +361,18 @@ class AnuncioEmailIA(Scene):
             run_time=0.5
         )
 
-        # 1. Ventana Principal
         crm_bg = RoundedRectangle(
             width=8.2, height=6.5, corner_radius=0.3,
             fill_color="#0D0D0D", fill_opacity=0.95,
             stroke_color="#333333", stroke_width=2
         ).move_to(DOWN * 0.5)
 
-        # 2. Controles de ventana (macOS style)
         dots_macos = VGroup(
             Dot(color="#FF5F56", radius=0.08),
             Dot(color="#FFBD2E", radius=0.08),
             Dot(color="#27C93F", radius=0.08)
         ).arrange(RIGHT, buff=0.15).move_to(crm_bg.get_corner(UL) + RIGHT * 0.4 + DOWN * 0.3)
 
-        # 3. Líneas divisoras (Header y Sidebar)
         top_line = Line(
             crm_bg.get_corner(UL) + DOWN * 0.6,
             crm_bg.get_corner(UR) + DOWN * 0.6,
@@ -374,7 +386,6 @@ class AnuncioEmailIA(Scene):
             color="#333333", stroke_width=2
         )
 
-        # 4. Iconos del Sidebar
         sidebar_icons = VGroup(*[
             RoundedRectangle(width=0.8, height=0.35, corner_radius=0.1, 
                              fill_color="#222222", fill_opacity=1, stroke_width=0)
@@ -385,19 +396,17 @@ class AnuncioEmailIA(Scene):
         sidebar_icons.move_to([centro_sidebar_x, crm_bg.get_center()[1] + 0.5, 0])
         sidebar_icons[0].set_fill(COL_AZUL, opacity=0.3)
 
-        # 5. Título del CRM
         crm_title = Text("Jercol CRM", font=FONT_T, font_size=26, color=WHITE, weight=BOLD)
         crm_title.next_to(sidebar_line.get_start(), RIGHT, buff=0.4).shift(DOWN * 0.4)
 
-        # 6. Cabeceras de la tabla (COLOR MÁS CLARO Y MÁS JUNTAS)
         headers = VGroup(
             Text("Cliente", font=FONT_B, font_size=18, color="#CCCCCC"),
             Text("Asunto", font=FONT_B, font_size=18, color="#CCCCCC"),
             Text("Estado", font=FONT_B, font_size=18, color="#CCCCCC")
         )
         headers[0].next_to(crm_title, DOWN, buff=0.6).align_to(crm_title, LEFT)
-        headers[1].move_to(headers[0].get_center() + RIGHT * 1.8) # Reducido de 2.2 a 1.8
-        headers[2].move_to(headers[1].get_center() + RIGHT * 2.0) # Reducido de 2.2 a 2.0
+        headers[1].move_to(headers[0].get_center() + RIGHT * 1.8)
+        headers[2].move_to(headers[1].get_center() + RIGHT * 2.0)
 
         header_y = headers[0].get_y() - 0.3
         header_line = Line(
@@ -411,7 +420,6 @@ class AnuncioEmailIA(Scene):
         self.play(GrowFromCenter(crm_bg), run_time=0.5)
         self.play(FadeIn(VGroup(dots_macos, top_line, sidebar_line, sidebar_icons, crm_title, headers, header_line)), run_time=0.5)
 
-        # 7. Filas de datos con Badges
         estados = [
             (RED, "Pendiente", "#330000"),
             (YELLOW, "En proceso", "#333300"),
@@ -419,6 +427,8 @@ class AnuncioEmailIA(Scene):
         ]
 
         filas_crm = VGroup()
+        badge_pendiente = None 
+
         for i, (color_borde, texto_estado, color_fondo) in enumerate(estados):
             fila = VGroup()
             
@@ -427,7 +437,6 @@ class AnuncioEmailIA(Scene):
             ico = get_email_icon(color=WHITE, scale=0.5)
             ico.move_to([headers[0].get_x() - 0.2, y_pos, 0])
             
-            # LÍNEAS MÁS CORTAS (Usando ORIGIN para control exacto)
             linea_nombre = Line(ORIGIN, RIGHT * 1.0, color=WHITE, stroke_width=3)
             linea_nombre.next_to(ico, RIGHT, buff=0.2)
             
@@ -436,6 +445,9 @@ class AnuncioEmailIA(Scene):
             
             badge = make_badge(texto_estado, color_borde, color_fondo)
             badge.move_to([headers[2].get_x(), y_pos, 0]).align_to(headers[2], LEFT)
+            
+            if i == 0:
+                badge_pendiente = badge
             
             if i < 2:
                 sep_y = y_pos - 0.55
@@ -456,4 +468,61 @@ class AnuncioEmailIA(Scene):
 
         txt_crm = make_label("Todo en un solo lugar", color=WHITE, font_size=38).move_to(DOWN * 4.5)
         self.play(FadeIn(txt_crm, shift=UP * 0.3), run_time=0.5)
-        self.wait(1.5)
+        self.wait(1.0)
+
+        # ══════════════════════════════════════════════════
+        # ESCENA 7 — CONTROL HUMANO (FIX "HOVER-REVEAL")
+        # ══════════════════════════════════════════════════
+
+        # 1. El cursor entra y se dirige al badge "Pendiente"
+        cursor = get_cursor(scale=0.6)
+        cursor.move_to(RIGHT * 4.0 + DOWN * 3.0)
+        
+        target_pos = badge_pendiente.get_center() + RIGHT * 0.1 + DOWN * 0.1
+        
+        self.play(
+            cursor.animate.move_to(target_pos),
+            run_time=0.8,
+            rate_func=smooth
+        )
+
+        # 2. El badge "Pendiente" se transforma en "Aprobar" al llegar el cursor
+        btn_aprobar = make_badge("Aprobar", COL_AZUL, "#001133")
+        btn_aprobar.move_to(badge_pendiente.get_center())
+
+        self.play(
+            FadeOut(badge_pendiente, scale=0.8),
+            FadeIn(btn_aprobar, scale=1.2),
+            run_time=0.2
+        )
+        self.wait(0.2)
+
+        # 3. Animación de Clic sobre el nuevo botón
+        self.play(
+            VGroup(cursor, btn_aprobar).animate.scale(0.85),
+            run_time=0.15
+        )
+        self.play(
+            VGroup(cursor, btn_aprobar).animate.scale(1 / 0.85),
+            run_time=0.15
+        )
+
+        # 4. Transformación final: El botón se convierte en "Aprobado ✔"
+        badge_aprobado = make_badge("Aprobado ✔", COL_VERDE, "#003300")
+        badge_aprobado.move_to(btn_aprobar.get_center())
+
+        txt_control = make_label("Control total", color=COL_VERDE, font_size=42).move_to(txt_crm.get_center())
+
+        self.play(
+            ReplacementTransform(btn_aprobar, badge_aprobado),
+            ReplacementTransform(txt_crm, txt_control),
+            run_time=0.6
+        )
+        
+        # El cursor se retira
+        self.play(
+            cursor.animate.shift(RIGHT * 1.5 + DOWN * 1.5),
+            run_time=0.6,
+            rate_func=smooth
+        )
+        self.wait(1.0)
