@@ -48,7 +48,6 @@ def get_ia_core():
     return VGroup(anillo3, anillo2, anillo1, centro, simbolo)
 
 def get_chat_bubble(texto, color_burbuja=COL_AZUL, font_size=28, ancho=4.5):
-    """Burbuja con texto centrado. Tamaño dinámico según contenido."""
     txt = Text(texto, font="Rajdhani", font_size=font_size,
                color=WHITE, weight=BOLD)
     txt.set_max_width(ancho - 0.6)
@@ -64,7 +63,6 @@ def get_chat_bubble(texto, color_burbuja=COL_AZUL, font_size=28, ancho=4.5):
     return burbuja, txt
 
 def make_badge(texto, color_borde, color_fondo):
-    """Crea una etiqueta de estado tipo píldora para el CRM"""
     txt = Text(texto, font=FONT_B, font_size=20, color=color_borde, weight=BOLD)
     bg = RoundedRectangle(
         width=txt.width + 0.6, height=txt.height + 0.25, corner_radius=0.15,
@@ -75,7 +73,6 @@ def make_badge(texto, color_borde, color_fondo):
     return VGroup(bg, txt)
 
 def get_cursor(scale=0.7):
-    """Dibuja un cursor de ratón clásico"""
     cursor = Polygon(
         ORIGIN,
         DOWN * 0.7 + RIGHT * 0.25,
@@ -89,8 +86,42 @@ def get_cursor(scale=0.7):
     cursor.scale(scale)
     return cursor
 
-
 class AnuncioEmailIA(Scene):
+    def create_caos_panel(self):
+        panel = VGroup()
+        frame = Rectangle(width=4.0, height=5.5, color=DARK_GRAY, stroke_width=2).move_to(LEFT * 2.25 + UP * 2.5)
+        title = Text("ANTES", font=FONT_T, font_size=24, color=RED).next_to(frame, UP, buff=0.2)
+        
+        correos_caos = VGroup()
+        for _ in range(25):
+            ico = get_email_icon(color=random.choice([RED, WHITE, BLUE]), scale=random.uniform(0.8, 1.2))
+            ico.move_to(
+                frame.get_center() + 
+                RIGHT * random.uniform(-1.8, 1.8) + 
+                UP * random.uniform(-2.5, 2.5)
+            )
+            correos_caos.add(ico)
+            
+        panel.add(frame, title, correos_caos)
+        return panel
+
+    def create_orden_panel(self):
+        panel = VGroup()
+        frame = Rectangle(width=4.0, height=5.5, color=DARK_GRAY, stroke_width=2).move_to(RIGHT * 2.25 + UP * 2.5)
+        title = Text("DESPUÉS", font=FONT_T, font_size=24, color=COL_VERDE).next_to(frame, UP, buff=0.2)
+        
+        correos_orden = VGroup()
+        col_x = [-1.2, 0, 1.2]
+        col_colors = [RED, COL_VERDE, COL_AZUL]
+        for cx, cc in zip(col_x, col_colors):
+            for i in range(4):
+                ico = get_email_icon(color=cc, scale=0.8)
+                ico.move_to(frame.get_center() + RIGHT * cx + UP * (1.8 - i * 1.2))
+                correos_orden.add(ico)
+
+        panel.add(frame, title, correos_orden)
+        return panel
+
     def construct(self):
         self.camera.frame_height = 16
         self.camera.frame_width  = 9
@@ -331,19 +362,15 @@ class AnuncioEmailIA(Scene):
             shell, txt_mob = get_chat_bubble(
                 texto, color_burbuja=color, font_size=30, ancho=4.5)
 
-            # Posicionar conjunto
             grupo = VGroup(shell, txt_mob)
             if lado == "izq":
                 grupo.move_to(pos).align_to(LEFT * 4.2, LEFT)
             else:
                 grupo.move_to(pos).align_to(RIGHT * 4.2, RIGHT)
 
-            # Reasegurar texto centrado en shell tras mover
             txt_mob.move_to(shell.get_center())
 
-            # 1. Burbuja aparece
             self.play(FadeIn(shell, scale=0.85), run_time=0.35)
-            # 2. Texto aparece con Write (limpio, sin cursor)
             self.play(Write(txt_mob, run_time=0.6))
             self.wait(0.35)
             burbujas_group.add(grupo)
@@ -426,103 +453,97 @@ class AnuncioEmailIA(Scene):
             (COL_VERDE, "Enviado", "#003300")
         ]
 
-        filas_crm = VGroup()
+        filas_crm_content = VGroup()
         badge_pendiente = None 
 
         for i, (color_borde, texto_estado, color_fondo) in enumerate(estados):
             fila = VGroup()
-            
             y_pos = headers[0].get_y() - 0.8 - i * 1.1
-            
-            ico = get_email_icon(color=WHITE, scale=0.5)
-            ico.move_to([headers[0].get_x() - 0.2, y_pos, 0])
-            
-            linea_nombre = Line(ORIGIN, RIGHT * 1.0, color=WHITE, stroke_width=3)
-            linea_nombre.next_to(ico, RIGHT, buff=0.2)
-            
-            linea_asunto = Line(ORIGIN, RIGHT * 1.5, color=LIGHT_GREY, stroke_width=2)
-            linea_asunto.move_to([headers[1].get_x(), y_pos, 0]).align_to(headers[1], LEFT)
-            
-            badge = make_badge(texto_estado, color_borde, color_fondo)
-            badge.move_to([headers[2].get_x(), y_pos, 0]).align_to(headers[2], LEFT)
+            ico = get_email_icon(color=WHITE, scale=0.5).move_to([headers[0].get_x() - 0.2, y_pos, 0])
+            linea_nombre = Line(ORIGIN, RIGHT * 1.0, color=WHITE, stroke_width=3).next_to(ico, RIGHT, buff=0.2)
+            linea_asunto = Line(ORIGIN, RIGHT * 1.5, color=LIGHT_GREY, stroke_width=2).move_to([headers[1].get_x(), y_pos, 0]).align_to(headers[1], LEFT)
+            badge = make_badge(texto_estado, color_borde, color_fondo).move_to([headers[2].get_x(), y_pos, 0]).align_to(headers[2], LEFT)
             
             if i == 0:
                 badge_pendiente = badge
             
             if i < 2:
                 sep_y = y_pos - 0.55
-                separador = Line(
-                    [sidebar_x, sep_y, 0],
-                    [crm_bg.get_corner(UR)[0], sep_y, 0],
-                    color="#222222", stroke_width=1
-                )
+                separador = Line([sidebar_x, sep_y, 0], [crm_bg.get_corner(UR)[0], sep_y, 0], color="#222222", stroke_width=1)
                 fila.add(separador)
                 
             fila.add(ico, linea_nombre, linea_asunto, badge)
-            filas_crm.add(fila)
+            filas_crm_content.add(fila)
 
         self.play(
-            LaggedStart(*[FadeIn(fila, shift=RIGHT * 0.2) for fila in filas_crm], lag_ratio=0.15),
+            LaggedStart(*[FadeIn(fila, shift=RIGHT * 0.2) for fila in filas_crm_content], lag_ratio=0.15),
             run_time=1.0
         )
 
+        crm_completo = VGroup(crm_ui_base, filas_crm_content)
         txt_crm = make_label("Todo en un solo lugar", color=WHITE, font_size=38).move_to(DOWN * 4.5)
         self.play(FadeIn(txt_crm, shift=UP * 0.3), run_time=0.5)
         self.wait(1.0)
 
         # ══════════════════════════════════════════════════
-        # ESCENA 7 — CONTROL HUMANO (FIX "HOVER-REVEAL")
+        # ESCENA 7 — CONTROL HUMANO (HOVER-REVEAL)
         # ══════════════════════════════════════════════════
 
-        # 1. El cursor entra y se dirige al badge "Pendiente"
-        cursor = get_cursor(scale=0.6)
-        cursor.move_to(RIGHT * 4.0 + DOWN * 3.0)
-        
+        cursor = get_cursor(scale=0.6).move_to(RIGHT * 4.0 + DOWN * 3.0)
         target_pos = badge_pendiente.get_center() + RIGHT * 0.1 + DOWN * 0.1
         
-        self.play(
-            cursor.animate.move_to(target_pos),
-            run_time=0.8,
-            rate_func=smooth
-        )
+        self.play(cursor.animate.move_to(target_pos), run_time=0.8, rate_func=smooth)
 
-        # 2. El badge "Pendiente" se transforma en "Aprobar" al llegar el cursor
-        btn_aprobar = make_badge("Aprobar", COL_AZUL, "#001133")
-        btn_aprobar.move_to(badge_pendiente.get_center())
+        btn_aprobar = make_badge("Aprobar", COL_AZUL, "#001133").move_to(badge_pendiente.get_center())
 
-        self.play(
-            FadeOut(badge_pendiente, scale=0.8),
-            FadeIn(btn_aprobar, scale=1.2),
-            run_time=0.2
-        )
+        self.play(FadeOut(badge_pendiente, scale=0.8), FadeIn(btn_aprobar, scale=1.2), run_time=0.2)
         self.wait(0.2)
 
-        # 3. Animación de Clic sobre el nuevo botón
-        self.play(
-            VGroup(cursor, btn_aprobar).animate.scale(0.85),
-            run_time=0.15
-        )
-        self.play(
-            VGroup(cursor, btn_aprobar).animate.scale(1 / 0.85),
-            run_time=0.15
-        )
+        self.play(VGroup(cursor, btn_aprobar).animate.scale(0.85), run_time=0.15)
+        self.play(VGroup(cursor, btn_aprobar).animate.scale(1 / 0.85), run_time=0.15)
 
-        # 4. Transformación final: El botón se convierte en "Aprobado ✔"
-        badge_aprobado = make_badge("Aprobado ✔", COL_VERDE, "#003300")
-        badge_aprobado.move_to(btn_aprobar.get_center())
-
+        badge_aprobado = make_badge("Aprobado ✔", COL_VERDE, "#003300").move_to(btn_aprobar.get_center())
         txt_control = make_label("Control total", color=COL_VERDE, font_size=42).move_to(txt_crm.get_center())
 
-        self.play(
-            ReplacementTransform(btn_aprobar, badge_aprobado),
-            ReplacementTransform(txt_crm, txt_control),
-            run_time=0.6
-        )
+        self.play(ReplacementTransform(btn_aprobar, badge_aprobado), ReplacementTransform(txt_crm, txt_control), run_time=0.6)
         
-        # El cursor se retira
-        self.play(
-            cursor.animate.shift(RIGHT * 1.5 + DOWN * 1.5),
-            run_time=0.6,
-            rate_func=smooth
-        )
+        self.play(cursor.animate.shift(RIGHT * 1.5 + DOWN * 1.5), run_time=0.6, rate_func=smooth)
         self.wait(1.0)
+
+        # ══════════════════════════════════════════════════
+        # ESCENA 8 — RESULTADO + CTA (FIX FONT SIZE)
+        # ══════════════════════════════════════════════════
+
+        elementos_escena7 = VGroup(crm_completo, badge_aprobado, txt_control, cursor, nucleo_mini)
+        self.play(FadeOut(elementos_escena7), run_time=0.5)
+        
+        caos_panel = self.create_caos_panel()
+        orden_panel = self.create_orden_panel()
+        divisor_line = Line(UP * 5.25, DOWN * -0.25, color=WHITE, stroke_width=2.5).move_to(UP * 2.5)
+        
+        self.play(FadeIn(caos_panel, shift=RIGHT * 0.5), run_time=0.6)
+        self.play(FadeIn(orden_panel, shift=LEFT * 0.5), Create(divisor_line), run_time=0.6)
+        self.wait(1.0)
+        
+        split_screen = VGroup(caos_panel, orden_panel, divisor_line)
+        self.play(split_screen.animate.scale(0.6).to_edge(UP, buff=0.8), run_time=0.8)
+        
+        logo = get_jercol_logo().scale(0.8).next_to(split_screen, DOWN, buff=1.2)
+        
+        # AJUSTE DE FONT_SIZE AQUÍ
+        cta_principal = Text("Automatiza tu negocio con IA", font=FONT_T, font_size=38, weight=BOLD).next_to(logo, DOWN, buff=0.8) 
+        marca = Text("Jercol Technologies", font=FONT_B, font_size=36, color=COL_AZUL, weight=BOLD).next_to(cta_principal, DOWN, buff=0.3)
+        
+        self.play(GrowFromCenter(logo), run_time=0.6)
+        self.play(
+            LaggedStart(FadeIn(cta_principal, shift=UP * 0.3), FadeIn(marca, shift=UP * 0.3), lag_ratio=0.3),
+            run_time=0.8
+        )
+        self.wait(0.5)
+
+        credito = Text("Diseñado por Jercol Media Studio", font=FONT_B, font_size=24, color=GRAY).move_to(DOWN * 6.5)
+        
+        self.play(Flash(credito, color=WHITE, line_length=0.2, num_lines=12, flash_radius=1.5), run_time=0.7)
+        self.play(credito.animate.set_opacity(0.4), run_time=0.5)
+        
+        self.wait(2.5)
